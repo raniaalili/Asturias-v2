@@ -1,1 +1,1442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asturies — 14–17 Mai</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --ivory: #f6f1e7; --paper: #fffaf0; --paper-soft: #fbf6ec; --stone: #ded6c8; --stone-light: #ece5d9;
+  --forest: #243b31; --forest-mid: #465f4e; --moss: #6f7f63; --moss-soft: #e9eee4;
+  --atlantic: #355f68; --atlantic-soft: #e6eeee; --brass: #9a7a4a; --brass-soft: #eee4d1;
+  --ink: #171512; --text: #2c2b25; --muted: #756f64; --soft: #a39a8b;
+  --line: rgba(36, 59, 49, 0.16); --line-warm: rgba(154, 122, 74, 0.18);
+  --shadow: 0 16px 38px rgba(23, 21, 18, 0.055); --shadow-soft: 0 8px 22px rgba(23, 21, 18, 0.045);
+  --radius-xl: 26px; --radius-lg: 18px; --radius-md: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--ivory);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(36,59,49,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36,59,49,0.014) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.45;
+  z-index: -1;
+}
+
+.cover {
+  min-height: 100vh;
+  background: #0f1f1a;
+  padding: 64px 32px 76px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cover::after {
+  content: '';
+  position: absolute;
+  left: 32px;
+  bottom: 48px;
+  width: 52px;
+  height: 1px;
+  background: #c8a46b;
+}
+
+.cover-eyebrow {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3.6px;
+  text-transform: uppercase;
+  color: rgba(255,250,240,0.48);
+  margin-bottom: 112px;
+}
+
+.cover-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 68px;
+  font-weight: 300;
+  line-height: 0.94;
+  color: #fffaf0;
+  letter-spacing: -2px;
+}
+
+.cover-title-sub {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 30px;
+  font-weight: 300;
+  color: rgba(255,250,240,0.68);
+  display: block;
+  margin-top: 16px;
+}
+
+.cover-meta {
+  font-size: 10px;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  color: rgba(255,250,240,0.46);
+  margin-top: 34px;
+}
+
+.cover-hotels {
+  margin-top: 76px;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255,250,240,0.18);
+}
+
+.cover-hotels-label {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(200,164,107,0.88);
+  margin-bottom: 14px;
+}
+
+.cover .hotel-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,250,240,0.14);
+}
+
+.cover .hotel-row:last-child { border-bottom: none; }
+
+.cover .hotel-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: rgba(255,250,240,0.94);
+}
+
+.cover .hotel-night-tag {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,250,240,0.64);
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: 6px;
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+  margin: -22px 18px 24px;
+  padding: 7px;
+  border-radius: 999px;
+  background: rgba(255,250,240,0.94);
+  border: 1px solid var(--line-warm);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+}
+
+.nav a {
+  flex: 1;
+  text-align: center;
+  padding: 9px 3px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--forest);
+  text-decoration: none;
+  border-radius: 999px;
+}
+
+.nav a:hover,
+.nav a:active {
+  background: var(--forest);
+  color: var(--paper);
+}
+
+.route-card,
+.section-wide,
+.section-wide-alt {
+  margin: 0 18px 26px;
+  padding: 28px 24px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line-warm);
+  box-shadow: var(--shadow);
+}
+
+.route-card,
+.section-wide { background: var(--paper); }
+
+.section-wide-alt { background: var(--paper-soft); }
+
+.route-eyebrow,
+.section-eyebrow {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--forest-mid);
+  margin-bottom: 8px;
+}
+
+.route-title,
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 5px;
+  letter-spacing: -0.4px;
+}
+
+.route-sub,
+.section-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.55;
+}
+
+.route-map {
+  height: 300px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--stone-light);
+}
+
+.map-pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--forest);
+  color: var(--paper);
+  border: 2px solid var(--paper);
+  box-shadow: 0 6px 16px rgba(23,21,18,0.20);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.map-pin.airport {
+  background: var(--brass);
+  font-size: 12px;
+}
+
+.route-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.route-btn,
+.map-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+}
+
+.route-btn {
+  padding: 10px 14px;
+  font-size: 9px;
+  color: var(--paper);
+  background: var(--forest);
+  border: 1px solid var(--forest);
+}
+
+.route-btn.secondary {
+  color: var(--forest);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.day-sep {
+  padding: 32px 28px 13px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.day-sep-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line-warm);
+}
+
+.day-sep-text {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--brass);
+  white-space: nowrap;
+}
+
+.section { padding: 0 18px; }
+
+.day-header {
+  padding: 28px 24px 24px;
+  background: var(--paper);
+  border: 1px solid var(--line-warm);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+
+.day-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 3px;
+  background: var(--forest);
+  border-radius: 0 4px 4px 0;
+}
+
+.day-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--forest-mid);
+  margin-bottom: 14px;
+}
+
+.day-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.12;
+  color: var(--ink);
+  margin-bottom: 10px;
+  letter-spacing: -0.4px;
+}
+
+.day-sub {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+.zone-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: var(--paper);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--forest);
+}
+
+.day-visual {
+  height: 168px;
+  background-size: cover;
+  background-position: center;
+  border-left: 1px solid var(--line-warm);
+  border-right: 1px solid var(--line-warm);
+  position: relative;
+  overflow: hidden;
+}
+
+.day-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15,31,26,0.48), rgba(15,31,26,0.05));
+}
+
+.day-visual-caption {
+  position: absolute;
+  left: 22px;
+  bottom: 18px;
+  z-index: 2;
+  color: var(--paper);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+}
+
+.day-visual.j1 { background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80'); }
+.day-visual.j2 { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80'); }
+.day-visual.j3 { background-image: url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80'); }
+.day-visual.j4 { background-image: url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80'); }
+
+.timeline {
+  background: var(--paper-soft);
+  padding: 10px 18px 20px;
+  border-left: 1px solid var(--line-warm);
+  border-right: 1px solid var(--line-warm);
+  box-shadow: var(--shadow-soft);
+}
+
+.step {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.step:last-child { border-bottom: none; }
+
+.step-kicker {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 8px;
+}
+
+.step-place {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+
+.advice-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.advice-line {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.advice-line strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.step-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.tag-drive {
+  color: var(--muted);
+  background: var(--stone-light);
+  border: 1px solid var(--line-warm);
+}
+
+.tag-walk {
+  color: var(--forest-mid);
+  background: var(--moss-soft);
+  border: 1px solid rgba(36,59,49,0.16);
+}
+
+.tag-eat {
+  color: var(--brass);
+  background: var(--brass-soft);
+  border: 1px solid var(--line-warm);
+}
+
+.tag-hotel {
+  color: var(--paper);
+  background: var(--atlantic);
+}
+
+.map-btn {
+  margin-top: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  color: var(--forest-mid);
+  background: transparent;
+  font-size: 8px;
+}
+
+.map-btn:hover {
+  background: var(--forest);
+  color: var(--paper);
+}
+
+.moment {
+  background: var(--atlantic-soft);
+  border-left: 1px solid var(--line-warm);
+  border-right: 1px solid var(--line-warm);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.moment-eyebrow {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  color: var(--atlantic);
+  margin-bottom: 12px;
+}
+
+.moment-text {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.62;
+  color: var(--forest);
+}
+
+.hotel-card {
+  background: var(--paper);
+  padding: 24px;
+  border: 1px solid var(--line-warm);
+  border-top: none;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 22px;
+}
+
+.hotel-card-eyebrow {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 9px;
+}
+
+.hotel-card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 7px;
+}
+
+.hotel-card-detail {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.alert-box,
+.practical-box {
+  border-left: 1px solid var(--line-warm);
+  border-right: 1px solid var(--line-warm);
+  box-shadow: var(--shadow-soft);
+}
+
+.alert-box {
+  background: var(--brass-soft);
+  padding: 18px 20px;
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #5a3e10;
+  line-height: 1.55;
+}
+
+.practical-box {
+  background: var(--moss-soft);
+  padding: 20px 22px;
+}
+
+.practical-box-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  color: var(--forest-mid);
+  margin-bottom: 12px;
+}
+
+.practical-box ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.practical-box li {
+  font-size: 13px;
+  color: var(--muted);
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.practical-box li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--forest-mid);
+}
+
+.recap-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.recap-table thead th {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--soft);
+  text-align: left;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recap-table tbody td {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.recap-table tbody tr:last-child td { border-bottom: none; }
+
+.col-j {
+  color: var(--forest);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1px;
+  width: 28px;
+  padding-top: 16px;
+}
+
+.col-hotel {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink);
+  padding-right: 12px;
+}
+
+.col-zone {
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: right;
+  padding-top: 16px;
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 28px;
+}
+
+.progress-item {
+  display: flex;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: flex-start;
+}
+
+.progress-item:last-child { border-bottom: none; }
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--forest);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.progress-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--forest);
+  margin-bottom: 2px;
+}
+
+.progress-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.checklist-group { margin-bottom: 32px; }
+.checklist-group:last-child { margin-bottom: 0; }
+
+.checklist-group-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--forest-mid);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+
+.check-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-row:last-child { border-bottom: none; }
+
+.check-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.check-box {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid rgba(36,59,49,0.22);
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: var(--paper);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.check-content {
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+.check-input:checked + .check-box {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+
+.check-input:checked + .check-box::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.check-input:checked ~ .check-content {
+  opacity: 0.48;
+}
+
+.check-input:checked ~ .check-content .check-main {
+  text-decoration: line-through;
+}
+
+.check-main {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.check-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.adapt-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adapt-card {
+  background: var(--paper);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 7px 18px rgba(23,21,18,0.035);
+}
+
+.adapt-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--moss-soft);
+}
+
+.adapt-emoji { font-size: 16px; }
+
+.adapt-body {
+  border-top: 1px solid var(--line);
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.adapt-body ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.adapt-body li {
+  padding-left: 14px;
+  position: relative;
+}
+
+.adapt-body li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--forest-mid);
+}
+
+.footer {
+  margin: 0 18px;
+  background: var(--forest);
+  padding: 54px 32px;
+  text-align: center;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+
+.footer-title {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--paper);
+  margin-bottom: 12px;
+}
+
+.footer-meta {
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,250,240,0.48);
+}
+
+.gap-md { height: 10px; }
+.section-divider { height: 24px; }
+
+@media (max-width: 380px) {
+  .cover-title { font-size: 58px; }
+  .day-title, .section-title, .route-title { font-size: 27px; }
+  .route-map { height: 270px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="cover">
+  <div class="cover-eyebrow">L'itinéraire de Fraisita et Pommita</div>
+  <div class="cover-title">Asturies<span class="cover-title-sub">Paraíso Natural</span></div>
+  <div class="cover-meta">14 — 17 Mai 2026 &nbsp;·&nbsp; 4 jours</div>
+  <div class="cover-hotels">
+    <div class="cover-hotels-label">Hébergements</div>
+    <div class="hotel-row"><span class="hotel-name">Villa del Marqués</span><span class="hotel-night-tag">Nuit 1</span></div>
+    <div class="hotel-row"><span class="hotel-name">Indiana Boutique Hotel</span><span class="hotel-night-tag">Nuit 2</span></div>
+    <div class="hotel-row"><span class="hotel-name">Indiana Boutique Hotel</span><span class="hotel-night-tag">Nuit 3</span></div>
+  </div>
+</div>
+
+<div class="nav">
+  <a href="#j1">J1</a><a href="#j2">J2</a><a href="#j3">J3</a><a href="#j4">J4</a><a href="#checklist">✓</a><a href="#adapt">⚡</a>
+</div>
+
+<div class="route-card">
+  <div class="route-eyebrow">Carte de l’itinéraire des Asturies</div>
+  <div class="route-title">Vue d’ensemble</div>
+  <div class="route-sub">Une progression fluide : arrivée douce à l’ouest, villages côtiers, Llanes comme base centrale, puis Picos et belvédère final.</div>
+  <div id="overviewMap" class="route-map" aria-label="Carte de l’itinéraire complet des Asturies"></div>
+  <div class="route-actions">
+    <a class="route-btn secondary" href="https://www.google.com/maps/search/?api=1&query=Asturias%20Spain" target="_blank" rel="noopener">Asturies</a>
+    <a class="route-btn" href="https://www.google.com/maps/dir/Asturias+Airport/Villa+del+Marqu%C3%A9s+Muros+de+Nal%C3%B3n/Cudillero/Cabo+Vidio/Lastres/Indiana+Boutique+Hotel+Llanes/Bufones+de+Pr%C3%ADa/Cangas+de+On%C3%ADs/Lagos+de+Covadonga/Mirador+del+Fitu/Asturias+Airport" target="_blank" rel="noopener">Itinéraire global</a>
+  </div>
+</div>
+
+<div class="gap-md"></div>
+
+<div id="j1" class="section">
+  <div class="day-header">
+    <div class="day-label">Jour 1 · Jeudi 14 Mai</div>
+    <div class="day-title">Arrivée côte atlantique</div>
+    <div class="day-sub">Entrer doucement dans les Asturies</div>
+    <span class="zone-pill">Aéroport → Muros de Nalón</span>
+  </div>
+
+  <div class="day-visual j1">
+    <div class="day-visual-caption">Estuaire · lumière douce · première respiration</div>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-kicker">Activité 1 · Arrivée fluide</div>
+      <div class="step-place">Hotel Boutique Villa del Marqués</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> c’est une arrivée intelligente : proche de l’aéroport, élégante, calme, sans vous jeter directement dans une grosse étape.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> fin d’après-midi, juste après l’atterrissage et la récupération de la voiture.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> ne perdez pas de temps à chercher une grande visite le premier soir ; l’intérêt est de poser les valises et de respirer.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> gardez cette soirée courte et belle. Le vrai voyage commence demain ; ce soir sert à créer le sas.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-hotel">Nuit 1</span><span class="tag tag-drive">Proche aéroport</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Hotel%20Boutique%20Villa%20del%20Marqu%C3%A9s%20Muros%20de%20Nal%C3%B3n" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 2 · Balade de fin de journée</div>
+      <div class="step-place">Estuaire du Nalón · San Esteban de Pravia</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> c’est très asturien sans être spectaculaire forcé : eau, barques, air de marée, village local, lumière basse.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> golden hour, quand la lumière devient chaude et que l’arrivée fatigue moins.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> prévoir une veste : l’air humide du soir peut être frais même en mai.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> ne cherchez pas à “rentabiliser” la soirée. Faites une boucle simple, apéro local, dîner tranquille.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Marche douce</span><span class="tag tag-eat">Apéritif</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=San%20Esteban%20de%20Pravia%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-eyebrow">Moment fort du jour</div>
+    <div class="moment-text">La lumière de fin de journée sur l’estuaire : simple, locale, parfaite pour une première soirée sans pression.</div>
+  </div>
+
+  <div class="hotel-card">
+    <div class="hotel-card-eyebrow">Nuit 1</div>
+    <div class="hotel-card-name">Hotel Boutique Villa del Marqués</div>
+    <div class="hotel-card-detail">Muros de Nalón · Base élégante et pratique pour une arrivée sans stress.</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="day-sep"><div class="day-sep-line"></div><div class="day-sep-text">Vendredi 15 Mai</div><div class="day-sep-line"></div></div>
+
+<div id="j2" class="section">
+  <div class="day-header">
+    <div class="day-label">Jour 2 · Vendredi 15 Mai</div>
+    <div class="day-title">Villages suspendus et côte sauvage</div>
+    <div class="day-sub">Cudillero · Cabo Vidio · Lastres · Llanes</div>
+    <span class="zone-pill">Ouest → Centre → Est</span>
+  </div>
+
+  <div class="day-visual j2">
+    <div class="day-visual-caption">Villages · falaises · route vers Llanes</div>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-kicker">Activité 1 · Début de journée</div>
+      <div class="step-place">Cudillero</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> le village fonctionne comme un amphithéâtre coloré face au port. Il est beau surtout quand il est encore silencieux.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> matin tôt, avant les groupes et avant que la lumière soit trop dure.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> rues pentues, stationnement plus simple en bas ou à l’entrée selon l’affluence.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> commencez par monter au mirador, puis descendez vers le port. Dans ce sens, la découverte est plus forte.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Ruelles pentues</span><span class="tag tag-drive">Depuis Muros</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Cudillero%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 2 · Continuité côtière</div>
+      <div class="step-place">Cabo Vidio</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> c’est la pause sauvage du jour : falaises franches, mer ouverte, sensation d’espace après le village serré de Cudillero.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> fin de matinée, avant de repartir vers Lastres.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> peu d’abri s’il y a du vent ou du brouillard ; chaussures correctes recommandées.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> si le ciel est bouché, ne forcez pas. Gardez l’énergie pour Lastres et Llanes.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Falaises</span><span class="tag tag-drive">Route côtière</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Cabo%20Vidio%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 3 · Moment fort</div>
+      <div class="step-place">Lastres puis arrivée à Llanes</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> Lastres donne le côté carte postale verticale, puis Llanes devient votre base confortable pour la suite.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> déjeuner à Lastres, puis fin d’après-midi à Llanes pour le Paseo de San Pedro.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> Lastres se visite mieux à pied ; garez-vous plutôt en haut pour éviter de vous enfermer dans les ruelles.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> ne surchargez pas. Lastres + check-in + promenade à Llanes suffisent largement pour une journée élégante.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-eat">Déjeuner</span><span class="tag tag-hotel">Nuit 2</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Lastres%20Asturias" target="_blank" rel="noopener">Lastres</a>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Indiana%20Boutique%20Hotel%20San%20Roque%20del%20Acebal%20Llanes%20Asturias" target="_blank" rel="noopener">Indiana Boutique Hotel</a>
+    </div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-eyebrow">Moment fort du jour</div>
+    <div class="moment-text">Le contraste : Cudillero intime, Cabo Vidio sauvage, Lastres plus théâtral, puis Llanes comme point d’ancrage.</div>
+  </div>
+
+  <div class="hotel-card">
+    <div class="hotel-card-eyebrow">Nuit 2</div>
+    <div class="hotel-card-name">Indiana Boutique Hotel</div>
+    <div class="hotel-card-detail">Llanes / San Roque del Acebal · Base cohérente pour explorer la côte orientale et les Picos.</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="day-sep"><div class="day-sep-line"></div><div class="day-sep-text">Samedi 16 Mai</div><div class="day-sep-line"></div></div>
+
+<div id="j3" class="section">
+  <div class="day-header">
+    <div class="day-label">Jour 3 · Samedi 16 Mai</div>
+    <div class="day-title">La journée reine</div>
+    <div class="day-sub">Mer brute le matin · Picos de Europa ensuite</div>
+    <span class="zone-pill">Llanes → Pría → Covadonga</span>
+  </div>
+
+  <div class="alert-box">
+    <div class="alert-box-icon">⚠️</div>
+    <div><strong>Accès aux Lacs régulé</strong> — Le samedi, l’accès en voiture privée peut être limité. Vérifiez les navettes ALSA / Cangas de Onís et achetez les billets à l’avance.</div>
+  </div>
+
+  <div class="practical-box">
+    <div class="practical-box-label">À faire la veille au soir</div>
+    <ul>
+      <li>Consulter les marées pour Llanes / Pría.</li>
+      <li>Viser les Bufones autour de la pleine mer si la mer est active.</li>
+      <li>Prévoir veste imperméable, chaussures qui accrochent et marge pour les navettes.</li>
+    </ul>
+  </div>
+
+  <div class="day-visual j3">
+    <div class="day-visual-caption">Mer explosive · montagne · journée climax</div>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-kicker">Activité 1 · Début de journée météo-dépendant</div>
+      <div class="step-place">Bufones de Pría et Playa de Guadamía</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> les Bufones ne sont pas juste un “point photo” : c’est une expérience physique, avec grondement, souffle, pression de la mer sous les falaises.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> autour de la pleine mer, surtout si la houle est présente. Sans mer active, la Playa de Guadamía sauve largement l’étape.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> parking à Llames de Pría, marche jusqu’aux falaises, sol potentiellement humide, prudence stricte près des trous.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> ne restez pas uniquement aux premiers trous. Prolongez vers Guadamía : c’est souvent là que la balade devient vraiment belle.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Falaises</span><span class="tag tag-drive">Depuis Llanes</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Bufones%20de%20Pr%C3%ADa%20Playa%20de%20Guadam%C3%ADa%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 2 · Pivot pratique</div>
+      <div class="step-place">Cangas de Onís et Covadonga</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> Cangas sert de base logistique et Covadonga ajoute une dimension symbolique avant les paysages alpins.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> milieu de journée, en transition entre la côte et les Lacs.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> stationnement, navette, affluence du week-end ; mieux vaut arriver avec de la marge.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> déjeuner simple mais efficace. Ne faites pas un repas trop long : la vraie intensité du jour est aux Lacs.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-eat">Déjeuner</span><span class="tag tag-drive">Navette</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Cangas%20de%20On%C3%ADs%20Asturias" target="_blank" rel="noopener">Cangas</a>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Santuario%20de%20Covadonga%20Asturias" target="_blank" rel="noopener">Covadonga</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 3 · Moment fort</div>
+      <div class="step-place">Lacs de Covadonga</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> c’est le climax visuel du voyage : prairies hautes, lacs, vaches, montagnes, lumière qui change très vite.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> après-midi avancé si la météo est claire ; la lumière devient plus douce et les reliefs plus lisibles.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> météo variable, réseau faible, navettes à anticiper, boucle à adapter selon fatigue.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> faites la boucle Enol–Ercina si l’énergie est bonne. Sinon, concentrez-vous sur un seul lac et un mirador : mieux vaut moins faire mais bien vivre.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Boucle facile</span><span class="tag tag-hotel">Retour Indiana</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Lagos%20de%20Covadonga%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-eyebrow">Moment fort du jour</div>
+    <div class="moment-text">Le passage mer → montagne : les Bufones donnent le choc brut, les Lacs donnent l’ampleur.</div>
+  </div>
+
+  <div class="hotel-card">
+    <div class="hotel-card-eyebrow">Nuit 3</div>
+    <div class="hotel-card-name">Indiana Boutique Hotel</div>
+    <div class="hotel-card-detail">Retour à Llanes / San Roque del Acebal · Plus cohérent que Torazo : pas de détour inutile après une grosse journée.</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="day-sep"><div class="day-sep-line"></div><div class="day-sep-text">Dimanche 17 Mai</div><div class="day-sep-line"></div></div>
+
+<div id="j4" class="section">
+  <div class="day-header">
+    <div class="day-label">Jour 4 · Dimanche 17 Mai</div>
+    <div class="day-title">Le belvédère final</div>
+    <div class="day-sub">Une sortie panoramique avant l’envol</div>
+    <span class="zone-pill">Llanes → Fitu → Aéroport</span>
+  </div>
+
+  <div class="day-visual j4">
+    <div class="day-visual-caption">Panorama · synthèse · départ</div>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-kicker">Activité 1 · Début de journée</div>
+      <div class="step-place">Mirador del Fitu</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> c’est le point de synthèse : au nord, la côte ; au sud, les Picos. Il résume le voyage en une seule vue.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> matin, avant les groupes et avant que l’air ne devienne trop voilé.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> route de montagne, brouillard possible, vent fréquent au sommet.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> si le ciel est bouché, attendez 20–30 minutes. En Asturies, la visibilité peut changer très vite.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-drive">Depuis Llanes</span><span class="tag tag-walk">Vue 360°</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Mirador%20del%20Fitu%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Activité 2 · Option douce</div>
+      <div class="step-place">Playa de Salinas</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intéressant :</strong> plage simple, longue, ouverte, très pratique avant l’aéroport.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> uniquement si vous avez de l’avance après le Fitu.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> ne pas sacrifier la marge aéroport pour cette option.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> gardez-la comme soupape : café face à la mer, respiration, puis départ.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-walk">Optionnel</span><span class="tag tag-drive">Proche aéroport</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Playa%20de%20Salinas%20Asturias" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+
+    <div class="step">
+      <div class="step-kicker">Fin de parcours</div>
+      <div class="step-place">Aéroport des Asturies</div>
+      <div class="advice-grid">
+        <div class="advice-line"><strong>Pourquoi c’est intelligent :</strong> le dernier jour reste beau mais maîtrisé. Pas de détour absurde, pas de stress inutile.</div>
+        <div class="advice-line"><strong>Meilleur moment :</strong> arrivée large avant l’envol de 15h55.</div>
+        <div class="advice-line"><strong>Contraintes :</strong> retour voiture, essence, marge de sécurité.</div>
+        <div class="advice-line"><strong>Conseil intelligent :</strong> faites le plein avant de vous rapprocher de l’aéroport pour éviter la micro-panique finale.</div>
+      </div>
+      <div class="step-tags"><span class="tag tag-drive">Retour voiture</span><span class="tag tag-hotel">Envol 15h55</span></div>
+      <a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=Asturias%20Airport%20Ran%C3%B3n" target="_blank" rel="noopener">Google Maps</a>
+    </div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-eyebrow">Moment fort unique</div>
+    <div class="moment-text">Le Fitu : la vue finale qui relie la mer du début, les villages, les falaises et les Picos.</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="section-wide">
+  <div class="section-eyebrow">Vue d'ensemble</div>
+  <div class="section-title">Récapitulatif</div>
+  <div class="section-sub">Hôtels et étapes du voyage</div>
+  <table class="recap-table">
+    <thead><tr><th>J</th><th>Hôtel</th><th>Zone</th></tr></thead>
+    <tbody>
+      <tr><td class="col-j">J1</td><td class="col-hotel">Villa del Marqués</td><td class="col-zone">Muros de Nalón</td></tr>
+      <tr><td class="col-j">J2</td><td class="col-hotel">Indiana Boutique Hotel</td><td class="col-zone">Llanes</td></tr>
+      <tr><td class="col-j">J3</td><td class="col-hotel">Indiana Boutique Hotel</td><td class="col-zone">Llanes</td></tr>
+      <tr><td class="col-j">J4</td><td class="col-hotel">—</td><td class="col-zone">Envol 15h55</td></tr>
+    </tbody>
+  </table>
+
+  <div class="progress-list">
+    <div class="progress-item"><div class="progress-dot"></div><div><div class="progress-label">Jour 1</div><div class="progress-text">Arrivée douce, côte calme, première immersion.</div></div></div>
+    <div class="progress-item"><div class="progress-dot"></div><div><div class="progress-label">Jour 2</div><div class="progress-text">Villages, falaises, montée en intensité vers Llanes.</div></div></div>
+    <div class="progress-item"><div class="progress-dot"></div><div><div class="progress-label">Jour 3</div><div class="progress-text">Journée climax : Bufones, Covadonga, Lacs.</div></div></div>
+    <div class="progress-item"><div class="progress-dot"></div><div><div class="progress-label">Jour 4</div><div class="progress-text">Panorama conclusif, sortie propre vers l’aéroport.</div></div></div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div id="checklist" class="section-wide-alt">
+  <div class="section-eyebrow">Avant le départ</div>
+  <div class="section-title">Checklist</div>
+  <div class="section-sub">Les cases restent cochées même après refresh.</div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-label">Réservations obligatoires</div>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="covadonga-bus">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Billets navette Lacs de Covadonga</span>
+        <span class="check-sub">ALSA · samedi 16 mai · accès régulé · acheter avant le voyage</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="casa-eutimio">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Déjeuner Casa Eutimio · Lastres</span>
+        <span class="check-sub">Pour le vendredi 15 mai · réserver 2–3 jours avant</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="car-rental">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Voiture de location confirmée</span>
+        <span class="check-sub">Aéroport de Ranón · horaires de retrait + assurance + caution</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-label">À faire sur place</div>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="tides">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Consulter les marées pour le J3</span>
+        <span class="check-sub">Chercher Llanes / Pría · viser les Bufones autour de la pleine mer</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="j3-wakeup">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Régler le réveil du J3 selon la marée</span>
+        <span class="check-sub">Objectif : arriver aux Bufones avec marge</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="checklist-group">
+    <div class="checklist-group-label">À emporter</div>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="shoes">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Chaussures de marche légères</span>
+        <span class="check-sub">Sentiers côtiers + lacs · pas besoin de grosses chaussures techniques</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="rain-jacket">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Coupe-vent imperméable</span>
+        <span class="check-sub">Mai en Asturies = météo variable, même si l’appli annonce beau</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="sunscreen">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Crème solaire + lunettes</span>
+        <span class="check-sub">Falaises exposées + altitude des Lacs</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="cash">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Espèces liquides</span>
+        <span class="check-sub">Petits parkings, cafés locaux, imprévus</span>
+      </span>
+    </label>
+
+    <label class="check-row">
+      <input class="check-input" type="checkbox" data-check="powerbank">
+      <span class="check-box"></span>
+      <span class="check-content">
+        <span class="check-main">Téléphone chargé + powerbank</span>
+        <span class="check-sub">Carte, photos, zones moins couvertes dans les Picos</span>
+      </span>
+    </label>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<div id="adapt" class="section-wide">
+  <div class="section-eyebrow">Si nécessaire</div>
+  <div class="section-title">Adaptations rapides</div>
+  <div class="section-sub">Quoi ajuster selon météo, énergie ou contraintes.</div>
+
+  <div class="adapt-grid">
+    <div class="adapt-card">
+      <div class="adapt-head"><div class="adapt-emoji">🌧️</div><div>Mauvaise météo le J2</div></div>
+      <div class="adapt-body"><ul>
+        <li>Cudillero reste beau sous la pluie.</li>
+        <li>Supprimez Cabo Vidio si brouillard épais.</li>
+        <li>Gardez Lastres et arrivez plus tôt à Llanes.</li>
+      </ul></div>
+    </div>
+
+    <div class="adapt-card">
+      <div class="adapt-head"><div class="adapt-emoji">🌊</div><div>Mer calme aux Bufones</div></div>
+      <div class="adapt-body"><ul>
+        <li>Ne vous acharnez pas à attendre des jets inexistants.</li>
+        <li>Prolongez plutôt vers Playa de Guadamía.</li>
+        <li>Gardez l’énergie pour Covadonga et les Lacs.</li>
+      </ul></div>
+    </div>
+
+    <div class="adapt-card">
+      <div class="adapt-head"><div class="adapt-emoji">😴</div><div>Fatigue en milieu de voyage</div></div>
+      <div class="adapt-body"><ul>
+        <li>J2 : supprimez Cabo Vidio.</li>
+        <li>J3 : faites seulement un lac + un mirador.</li>
+        <li>Ne transformez pas le voyage en checklist militaire.</li>
+      </ul></div>
+    </div>
+
+    <div class="adapt-card">
+      <div class="adapt-head"><div class="adapt-emoji">☁️</div><div>Brouillard au Mirador del Fitu</div></div>
+      <div class="adapt-body"><ul>
+        <li>Attendez 20–30 minutes si vous avez de la marge.</li>
+        <li>Si rien ne se lève, descendez vers Salinas.</li>
+        <li>Le Fitu est un bonus final, pas une obligation anxiogène.</li>
+      </ul></div>
+    </div>
+
+    <div class="adapt-card">
+      <div class="adapt-head"><div class="adapt-emoji">🚌</div><div>Navette des Lacs compliquée</div></div>
+      <div class="adapt-body"><ul>
+        <li>Vérifiez les billets la veille.</li>
+        <li>Gardez Covadonga comme plan B noble.</li>
+        <li>Évitez d’improviser trop tard le samedi.</li>
+      </ul></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-title">Buen viaje</div>
+  <div class="footer-meta">Asturies · 14–17 Mai 2026 · Itinéraire finalisé</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const routeStops = [
+  { n: '✈', name: 'Asturias Airport', coords: [43.5636, -6.0346], airport: true },
+  { n: '1', name: 'Muros de Nalón', coords: [43.5420, -6.1039] },
+  { n: '2', name: 'Cudillero', coords: [43.5621, -6.1451] },
+  { n: '3', name: 'Cabo Vidio', coords: [43.5935, -6.2468] },
+  { n: '4', name: 'Lastres', coords: [43.5138, -5.2699] },
+  { n: '5', name: 'Indiana Boutique Hotel', coords: [43.4210, -4.7549] },
+  { n: '6', name: 'Bufones de Pría', coords: [43.4593, -4.9788] },
+  { n: '7', name: 'Cangas de Onís', coords: [43.3514, -5.1293] },
+  { n: '8', name: 'Lagos de Covadonga', coords: [43.2713, -4.9849] },
+  { n: '9', name: 'Mirador del Fitu', coords: [43.4407, -5.1923] },
+  { n: '✈', name: 'Asturias Airport', coords: [43.5636, -6.0346], airport: true }
+];
+
+const overviewMap = L.map('overviewMap', {
+  scrollWheelZoom: false,
+  dragging: true,
+  tap: true,
+  zoomControl: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '&copy; OpenStreetMap'
+}).addTo(overviewMap);
+
+const latlngs = routeStops.map(stop => stop.coords);
+
+L.polyline(latlngs, {
+  color: '#123f52',
+  weight: 4,
+  opacity: 0.72,
+  lineJoin: 'round'
+}).addTo(overviewMap);
+
+routeStops.forEach((stop, index) => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="map-pin ${stop.airport ? 'airport' : ''}">${stop.n}</div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+    popupAnchor: [0, -14]
+  });
+
+  L.marker(stop.coords, { icon })
+    .addTo(overviewMap)
+    .bindPopup(`<strong>${stop.name}</strong>${index === 0 ? '<br>Départ' : index === routeStops.length - 1 ? '<br>Retour' : ''}`);
+});
+
+overviewMap.fitBounds(L.latLngBounds(latlngs), { padding: [22, 22] });
+
+document.querySelectorAll('.check-input').forEach((input) => {
+  const key = 'asturias-check-' + input.dataset.check;
+  input.checked = localStorage.getItem(key) === 'true';
+
+  input.addEventListener('change', () => {
+    localStorage.setItem(key, input.checked);
+  });
+});
+</script>
+
+</body>
+</html>
